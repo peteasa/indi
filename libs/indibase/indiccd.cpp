@@ -475,24 +475,11 @@ bool CCD::initProperties()
     /**********************************************/
 
     // Snooped Devices
-
-    // Load from config
-    char telescope[MAXINDIDEVICE] = {"Telescope Simulator"};
-    IUGetConfigText(getDeviceName(), "ACTIVE_DEVICES", "ACTIVE_TELESCOPE", telescope, MAXINDIDEVICE);
-    char rotator[MAXINDIDEVICE] = {"Rotator Simulator"};
-    IUGetConfigText(getDeviceName(), "ACTIVE_DEVICES", "ACTIVE_ROTATOR", rotator, MAXINDIDEVICE);
-    char focuser[MAXINDIDEVICE] = {"Focuser Simulator"};
-    IUGetConfigText(getDeviceName(), "ACTIVE_DEVICES", "ACTIVE_FOCUSER", focuser, MAXINDIDEVICE);
-    char filter[MAXINDIDEVICE] = {"CCD Simulator"};
-    IUGetConfigText(getDeviceName(), "ACTIVE_DEVICES", "ACTIVE_FILTER", filter, MAXINDIDEVICE);
-    char skyquality[MAXINDIDEVICE] = {"SQM"};
-    IUGetConfigText(getDeviceName(), "ACTIVE_DEVICES", "ACTIVE_SKYQUALITY", skyquality, MAXINDIDEVICE);
-
-    ActiveDeviceTP[ACTIVE_TELESCOPE].fill("ACTIVE_TELESCOPE", "Telescope", telescope);
-    ActiveDeviceTP[ACTIVE_ROTATOR].fill("ACTIVE_ROTATOR", "Rotator", rotator);
-    ActiveDeviceTP[ACTIVE_FOCUSER].fill("ACTIVE_FOCUSER", "Focuser", focuser);
-    ActiveDeviceTP[ACTIVE_FILTER].fill("ACTIVE_FILTER", "Filter", filter);
-    ActiveDeviceTP[ACTIVE_SKYQUALITY].fill("ACTIVE_SKYQUALITY", "Sky Quality", skyquality);
+    ActiveDeviceTP[ACTIVE_TELESCOPE].fill("ACTIVE_TELESCOPE", "Telescope", "Telescope Simulator");
+    ActiveDeviceTP[ACTIVE_ROTATOR].fill("ACTIVE_ROTATOR", "Rotator", "Rotator Simulator");
+    ActiveDeviceTP[ACTIVE_FOCUSER].fill("ACTIVE_FOCUSER", "Focuser", "Focuser Simulator");
+    ActiveDeviceTP[ACTIVE_FILTER].fill("ACTIVE_FILTER", "Filter", "CCD Simulator");
+    ActiveDeviceTP[ACTIVE_SKYQUALITY].fill("ACTIVE_SKYQUALITY", "Sky Quality", "SQM");
     ActiveDeviceTP.fill(getDeviceName(), "ACTIVE_DEVICES", "Snoop devices", OPTIONS_TAB, IP_RW, 60, IPS_IDLE);
     ActiveDeviceTP.load();
 
@@ -656,7 +643,7 @@ bool CCD::updateProperties()
 
 #ifdef HAVE_WEBSOCKET
         if (HasWebSocket())
-            defineProperty(&WebSocketSP);
+            defineProperty(WebSocketSP);
 #endif
 
         defineProperty(FastExposureToggleSP);
@@ -719,7 +706,7 @@ bool CCD::updateProperties()
         if (HasCooler())
         {
             deleteProperty(TemperatureNP);
-            deleteProperty(TemperatureRampNP.getName());
+            deleteProperty(TemperatureRampNP);
         }
         if (HasST4Port())
         {
@@ -741,8 +728,8 @@ bool CCD::updateProperties()
 #ifdef HAVE_WEBSOCKET
         if (HasWebSocket())
         {
-            deleteProperty(WebSocketSP.name);
-            deleteProperty(WebSocketSettingsNP.name);
+            deleteProperty(WebSocketSP);
+            deleteProperty(WebSocketSettingsNP);
         }
 #endif
         deleteProperty(FastExposureToggleSP);
@@ -1593,26 +1580,26 @@ bool CCD::ISNewSwitch(const char * dev, const char * name, ISState * states, cha
 
 #ifdef HAVE_WEBSOCKET
         // Websocket Enable/Disable
-        if (!strcmp(name, WebSocketSP.name))
+        if (WebSocketSP.isNameMatch(name))
         {
-            IUUpdateSwitch(&WebSocketSP, states, names, n);
-            WebSocketSP.s = IPS_OK;
+            WebSocketSP.update(states, names, n);
+            WebSocketSP.setState(IPS_OK);
 
-            if (WebSocketS[WEBSOCKET_ENABLED].s == ISS_ON)
+            if (WebSocketSP[WEBSOCKET_ENABLED].getState() == ISS_ON)
             {
                 wsThread = std::thread(&wsThreadHelper, this);
-                WebSocketSettingsN[WS_SETTINGS_PORT].value = wsServer.generatePort();
-                WebSocketSettingsNP.s = IPS_OK;
-                defineProperty(&WebSocketSettingsNP);
+                WebSocketSettingsNP[WS_SETTINGS_PORT].setValue(wsServer.generatePort());
+                WebSocketSettingsNP.setState(IPS_OK);
+                defineProperty(WebSocketSettingsNP);
             }
             else if (wsServer.is_running())
             {
                 wsServer.stop();
                 wsThread.join();
-                deleteProperty(WebSocketSettingsNP.name);
+                deleteProperty(WebSocketSettingsNP);
             }
 
-            IDSetSwitch(&WebSocketSP, nullptr);
+            WebSocketSP.apply();
             return true;
         }
 #endif
@@ -2697,7 +2684,7 @@ bool CCD::uploadFile(CCDChip * targetChip, const void * fitsData, size_t totalBy
             prefix = std::regex_replace(prefix, std::regex("XXX"), prefixIndex);
         }
 
-        std::string imageFileName = std::string(UploadSettingsTP[UPLOAD_DIR].getText()) + "/" + prefix + "/" + std::string(
+        std::string imageFileName = std::string(UploadSettingsTP[UPLOAD_DIR].getText()) + "/" + prefix + std::string(
                                         targetChip->FitsBP[0].getFormat());
 
         fp = fopen(imageFileName.c_str(), "w");
@@ -2787,13 +2774,13 @@ bool CCD::uploadFile(CCDChip * targetChip, const void * fitsData, size_t totalBy
     if (sendImage)
     {
 #ifdef HAVE_WEBSOCKET
-        if (HasWebSocket() && WebSocketS[WEBSOCKET_ENABLED].s == ISS_ON)
+        if (HasWebSocket() && WebSocketSP[WEBSOCKET_ENABLED].getState() == ISS_ON)
         {
             auto start = std::chrono::high_resolution_clock::now();
 
             // Send format/size/..etc first later
-            wsServer.send_text(std::string(targetChip->FitsB.format));
-            wsServer.send_binary(targetChip->FitsB.blob, targetChip->FitsB.bloblen);
+            wsServer.send_text(std::string(targetChip->FitsBP[0].getFormat()));
+            wsServer.send_binary(targetChip->FitsBP[0].getBlob(), targetChip->FitsBP[0].getBlobLen());
 
             auto end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> diff = end - start;
