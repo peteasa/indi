@@ -35,6 +35,7 @@ class LX200_OpenAstroTech : public LX200GPS
         virtual bool initProperties() override;
         virtual bool updateProperties() override;
         virtual bool ISNewNumber(const char *dev, const char *name, double values[], char *names[], int n) override;
+        virtual bool ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n) override;
         virtual bool ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n) override;
 
     protected:
@@ -48,6 +49,7 @@ class LX200_OpenAstroTech : public LX200GPS
         virtual bool AbortFocuser () override;
         virtual bool ReadScopeStatus() override;
         virtual bool SyncFocuser(uint32_t ticks) override;
+        virtual bool saveConfigItems(FILE * fp) override;
 
         // Home
         virtual IPState ExecuteHomeAction(TelescopeHomeAction action) override;
@@ -85,6 +87,9 @@ class LX200_OpenAstroTech : public LX200GPS
 
         // ISwitchVectorProperty HomeSP;
         // ISwitch HomeS;
+
+        ISwitchVectorProperty FocuserEnabledSP;
+        ISwitch FocuserEnabledS[2];
 
         char MeadeCommandResult[1024];
         int32_t FocuserBacklash;

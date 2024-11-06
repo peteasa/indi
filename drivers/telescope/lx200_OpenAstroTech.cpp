@@ -108,6 +108,7 @@ bool LX200_OpenAstroTech::updateProperties()
 
     if (isConnected())
     {
+        defineProperty(&FocuserEnabledSP);
         defineProperty(&MeadeCommandTP);
         defineProperty(&PolarAlignAltNP);
         defineProperty(&PolarAlignAzNP);
@@ -119,6 +120,7 @@ bool LX200_OpenAstroTech::updateProperties()
     }
     else
     {
+        deleteProperty(FocuserEnabledSP.name);
         deleteProperty(MeadeCommandTP.name);
         deleteProperty(PolarAlignAltNP.name);
         deleteProperty(PolarAlignAzNP.name);
@@ -289,6 +291,36 @@ bool LX200_OpenAstroTech::ISNewNumber(const char *dev, const char *name, double 
     }
 
     return LX200GPS::ISNewNumber(dev, name, values, names, n);
+}
+
+bool LX200_OpenAstroTech::ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n)
+{
+    if (dev != nullptr && strcmp(dev, getDeviceName()) == 0)
+    {
+        if (!strcmp(name, FocuserEnabledSP.name))
+        {
+            bool OldFocuserEnabled = FocuserEnabledS[DefaultDevice::INDI_ENABLED].s == ISS_ON ? true : false;
+            IUUpdateSwitch(&FocuserEnabledSP, states, names, n);
+            if (OldFocuserEnabled != (FocuserEnabledS[DefaultDevice::INDI_ENABLED].s == ISS_ON))
+            {
+                // state changed so save change
+                FocuserEnabledSP.s = IPS_OK;
+                saveConfig(true, FocuserEnabledSP.name);
+            }
+
+            IDSetSwitch(&FocuserEnabledSP, nullptr);
+            return true;
+        }
+    }
+
+    return LX200GPS::ISNewSwitch(dev, name, states, names, n);
+}
+
+bool LX200_OpenAstroTech::saveConfigItems(FILE * fp)
+{
+    IUSaveConfigSwitch(fp, &FocuserEnabledSP);
+
+    return LX200GPS::saveConfigItems(fp);
 }
 
 // bool LX200_OpenAstroTech::ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n)
@@ -566,6 +598,13 @@ bool LX200_OpenAstroTech::SyncFocuser(uint32_t ticks)
 
 void LX200_OpenAstroTech::initFocuserProperties(const char * groupName)
 {
+    // Enable
+    IUFillSwitch(&FocuserEnabledS[DefaultDevice::INDI_ENABLED], "ENABLED", "Enabled", ISS_ON);
+    IUFillSwitch(&FocuserEnabledS[DefaultDevice::INDI_DISABLED], "DISABLED", "Disabled", ISS_OFF);
+    IUFillSwitchVector(&FocuserEnabledSP, FocuserEnabledS, 2, getDeviceName(), "FOCUS_ENABLED", "Enable focuser",
+                       groupName, IP_RW,
+                       ISR_1OFMANY, 0, IPS_IDLE);
+
     IUFillNumber(&FocusSpeedN[0], "FOCUS_SPEED_VALUE", "Focus Speed", "%3.0f", 0.0, 4.0, 1.0, 2.0);
     IUFillNumberVector(&FocusSpeedNP, FocusSpeedN, 1, getDeviceName(), "FOCUS_SPEED", "Speed", groupName,
                        IP_RW, 60, IPS_OK);
@@ -626,6 +665,12 @@ void LX200_OpenAstroTech::initFocuserProperties(const char * groupName)
 
 int LX200_OpenAstroTech::OATUpdateFocuser()
 {
+    bool FocuserEnabled = (IUFindOnSwitchIndex(&FocuserEnabledSP) == INDI_ENABLED) ? true: false;
+    if(!FocuserEnabled) {
+        // when disabled no need to poll
+        return 0;
+    }
+
     // we don't need to poll if we're not moving
     if(!(FocusRelPosNP.s == IPS_BUSY || FocusAbsPosNP.s == IPS_BUSY) && FocusAbsPosN[0].value != 0.0)
     {
