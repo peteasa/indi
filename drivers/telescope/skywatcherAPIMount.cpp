@@ -74,6 +74,8 @@ bool SkywatcherAPIMount::Handshake()
     if (!getActiveConnection()->name().compare("CONNECTION_TCP"))
     {
         tty_set_generic_udp_format(1);
+        // reset connection in case of packet loss
+        tty_set_auto_reset_udp_session(1);
     }
 
     SetSerialPort(PortFD);
@@ -264,6 +266,9 @@ bool SkywatcherAPIMount::initProperties()
     Axis2TrackRateNP[TrackClockRate].fill("TrackClockRate", "Freq/Stel (Hz/s)", "%.f", 0, 16000000, 500000, 0);
     Axis2TrackRateNP.fill(getDeviceName(), "AXIS2TrackRate", "Axis 2 Track", TRACKING_TAB, IP_RW, 60, IPS_IDLE);
 
+
+    MountTypeSP.reset();
+    MountTypeSP[MOUNT_ALTAZ].setState(ISS_ON);
 
     tcpConnection->setDefaultHost("192.168.4.1");
     tcpConnection->setDefaultPort(11880);
@@ -610,6 +615,13 @@ bool SkywatcherAPIMount::Goto(double ra, double dec)
     SilentSlewMode = (IUFindSwitch(&SlewModesSP, "SLEW_SILENT") != nullptr
                       && IUFindSwitch(&SlewModesSP, "SLEW_SILENT")->s == ISS_ON);
 
+    if(TrackState != SCOPE_SLEWING)
+    {
+        long deltaAz  = DegreesToMicrosteps(AXIS1, AZ_BACKLASH_DEG);
+        long deltaAlt = DegreesToMicrosteps(AXIS2, ALT_BACKLASH_DEG);
+        AzimuthOffsetMicrosteps -= deltaAz;
+        AltitudeOffsetMicrosteps -= deltaAlt;
+    }
     SlewTo(AXIS1, AzimuthOffsetMicrosteps);
     SlewTo(AXIS2, AltitudeOffsetMicrosteps);
 
@@ -1639,19 +1651,22 @@ bool SkywatcherAPIMount::trackUsingPID()
     INDI::IHorizontalCoordinates AltAz { 0, 0 };
 
     // We modify the SkyTrackingTarget for non-sidereal objects (Moon or Sun)
-    // FIXME: This was not tested.
+    // The Moon and Sun appear to move eastward (increasing RA) relative to the stars
+    // because their westward motion due to Earth's rotation is slower than the sidereal rate.
     if (TrackModeSP[TRACK_LUNAR].getState() == ISS_ON)
     {
-        // TRACKRATE_LUNAR how many arcsecs the Moon moved in one second.
-        // TRACKRATE_SIDEREAL how many arcsecs the Sky moved in one second.
-        double dRA = (TRACKRATE_LUNAR - TRACKRATE_SIDEREAL) * m_TrackingRateTimer.elapsed() / 1000.0;
-        m_SkyTrackingTarget.rightascension += (dRA / 3600.0) * 15.0;
+        // TRACKRATE_LUNAR: how many arcsecs/sec the Moon moves westward (apparent motion)
+        // TRACKRATE_SIDEREAL: how many arcsecs/sec the stars move westward (apparent motion)
+        // Since the Moon moves slower westward, it effectively moves eastward relative to stars
+        double dRA = (TRACKRATE_SIDEREAL - TRACKRATE_LUNAR) * m_TrackingRateTimer.elapsed() / 1000.0;
+        m_SkyTrackingTarget.rightascension += dRA / (3600.0 * 15.0);
         m_TrackingRateTimer.restart();
     }
     else if (TrackModeSP[TRACK_SOLAR].getState() == ISS_ON)
     {
-        double dRA = (TRACKRATE_SOLAR - TRACKRATE_SIDEREAL) * m_TrackingRateTimer.elapsed() / 1000.0;
-        m_SkyTrackingTarget.rightascension += (dRA / 3600.0) * 15.0;
+        // Similar logic: Sun moves slower westward than stars, so it moves eastward relative to stars
+        double dRA = (TRACKRATE_SIDEREAL - TRACKRATE_SOLAR) * m_TrackingRateTimer.elapsed() / 1000.0;
+        m_SkyTrackingTarget.rightascension += dRA / (3600.0 * 15.0);
         m_TrackingRateTimer.restart();
     }
 
@@ -1836,19 +1851,22 @@ bool SkywatcherAPIMount::trackUsingPredictiveRates()
     double JDoffset { timeStep / (60 * 60 * 24) } ;
 
     // We modify the SkyTrackingTarget for non-sidereal objects (Moon or Sun)
-    // FIXME: This was not tested.
+    // The Moon and Sun appear to move eastward (increasing RA) relative to the stars
+    // because their westward motion due to Earth's rotation is slower than the sidereal rate.
     if (TrackModeSP[TRACK_LUNAR].getState() == ISS_ON)
     {
-        // TRACKRATE_LUNAR how many arcsecs the Moon moved in one second.
-        // TRACKRATE_SIDEREAL how many arcsecs the Sky moved in one second.
-        double dRA = (TRACKRATE_LUNAR - TRACKRATE_SIDEREAL) * m_TrackingRateTimer.elapsed() / 1000.0;
-        m_SkyTrackingTarget.rightascension += (dRA / 3600.0) * 15.0;
+        // TRACKRATE_LUNAR: how many arcsecs/sec the Moon moves westward (apparent motion)
+        // TRACKRATE_SIDEREAL: how many arcsecs/sec the stars move westward (apparent motion)
+        // Since the Moon moves slower westward, it effectively moves eastward relative to stars
+        double dRA = (TRACKRATE_SIDEREAL - TRACKRATE_LUNAR) * m_TrackingRateTimer.elapsed() / 1000.0;
+        m_SkyTrackingTarget.rightascension += (dRA / 3600.0) / 15.0;
         m_TrackingRateTimer.restart();
     }
     else if (TrackModeSP[TRACK_SOLAR].getState() == ISS_ON)
     {
-        double dRA = (TRACKRATE_SOLAR - TRACKRATE_SIDEREAL) * m_TrackingRateTimer.elapsed() / 1000.0;
-        m_SkyTrackingTarget.rightascension += (dRA / 3600.0) * 15.0;
+        // Similar logic: Sun moves slower westward than stars, so it moves eastward relative to stars
+        double dRA = (TRACKRATE_SIDEREAL - TRACKRATE_SOLAR) * m_TrackingRateTimer.elapsed() / 1000.0;
+        m_SkyTrackingTarget.rightascension += (dRA / 3600.0) / 15.0;
         m_TrackingRateTimer.restart();
     }
 
@@ -1937,16 +1955,21 @@ bool SkywatcherAPIMount::trackUsingPredictiveRates()
     // Convert offsets from arcsecs to steps
     offsetSteps[AXIS_AZ] = offsetAngle[AXIS_AZ] * AxisOneEncoderValuesN[MICROSTEPS_PER_ARCSEC].value;
     offsetSteps[AXIS_ALT] = offsetAngle[AXIS_ALT] * AxisTwoEncoderValuesN[MICROSTEPS_PER_ARCSEC].value;
-    // Only apply tracking IF we're still on the same side of the curve
-    // If we switch over, let's settle for a bit
-    // This seems to not be required. To be removed after extensive testing
-    // if (m_LastOffset[AXIS_AZ] * offsetSteps[AXIS_AZ] >= 0 || m_OffsetSwitchSettle[AXIS_AZ]++ > 3)
+
+    /// AZ tracking
     {
         m_OffsetSwitchSettle[AXIS_AZ] = 0;
         m_LastOffset[AXIS_AZ] = offsetSteps[AXIS_AZ];
         targetSteps[AXIS_AZ] = DegreesToMicrosteps(AXIS1, AzimuthToDegrees(targetMountAxisCoordinates.azimuth));
         // Track rate: predicted + PID controlled correction based on tracking error: offsetSteps
         trackRates[AXIS_AZ] = predRate[AXIS_AZ] + m_Controllers[AXIS_AZ]->calculate(0, -offsetAngle[AXIS_AZ]);
+        //
+        // make sure we never change direction of the trackRate - reduce to predRate * MIN_TRACK_RATE_FACTOR in same direction
+        // since tracking direction change can lead to poor tracking
+        //
+        double minTrackRate = predRate[AXIS_AZ] * MIN_TRACK_RATE_FACTOR;
+        if(trackRates[AXIS_AZ] * predRate[AXIS_AZ] < 0 || std::abs(trackRates[AXIS_AZ]) < std::abs(minTrackRate))
+            trackRates[AXIS_AZ] = minTrackRate;
 
         LOGF_DEBUG("Tracking AZ Now: %8.f Target: %8d Offset: %8d Rate: %8.2f", Axis1Steps, targetSteps[AXIS_AZ],
                    offsetSteps[AXIS_AZ], trackRates[AXIS_AZ]);
@@ -1962,16 +1985,21 @@ bool SkywatcherAPIMount::trackUsingPredictiveRates()
         trackByRate(AXIS1, trackRates[AXIS_AZ]);
     }
 
-    // Only apply tracking IF we're still on the same side of the curve
-    // If we switch over, let's settle for a bit
-    // This seems to not be required. To be removed after extensive testing
-    // if (m_LastOffset[AXIS_ALT] * offsetSteps[AXIS_ALT] >= 0 || m_OffsetSwitchSettle[AXIS_ALT]++ > 3)
+    /// Alt tracking
     {
         m_OffsetSwitchSettle[AXIS_ALT] = 0;
         m_LastOffset[AXIS_ALT] = offsetAngle[AXIS_ALT];
         targetSteps[AXIS_ALT]  = DegreesToMicrosteps(AXIS2, targetMountAxisCoordinates.altitude);
         // Track rate: predicted + PID controlled correction based on tracking error: offsetSteps
         trackRates[AXIS_ALT] = predRate[AXIS_ALT] + m_Controllers[AXIS_ALT]->calculate(0, -offsetAngle[AXIS_ALT]);
+
+        //
+        // make sure we never change direction of the trackRate - reduce to predRate * MIN_TRACK_RATE_FACTOR in same direction
+        // since tracking direction change can lead to poor tracking
+        //
+        double minTrackRate = predRate[AXIS_ALT] * MIN_TRACK_RATE_FACTOR;
+        if(trackRates[AXIS_ALT] * predRate[AXIS_ALT] < 0 || std::abs(trackRates[AXIS_ALT]) < std::abs(minTrackRate))
+            trackRates[AXIS_ALT] = minTrackRate;
 
         LOGF_DEBUG("Tracking AL Now: %8.f Target: %8d Offset: %8d Rate: %8.2f", Axis2Steps,
                    targetSteps[AXIS_ALT],

@@ -326,6 +326,15 @@ struct PropertyView: PROPERTYVIEW_BASE_ACCESS WidgetTraits<T>::PropertyType
             const char * const names[], int n
         ); /* outside implementation - only driver side, see indipropertyview_driver.cpp */
 
+        template <typename X = T, enable_if_is_same_t<X, IText> = true>
+        bool isUpdated(const char * const texts[], const char * const names[], int n) const;
+
+        template <typename X = T, enable_if_is_same_t<X, INumber> = true>
+        bool isUpdated(const double values[], const char * const names[], int n) const;
+
+        template <typename X = T, enable_if_is_same_t<X, ISwitch> = true>
+        bool isUpdated(const ISState states[], const char * const names[], int n) const;
+
 
     public:
         WidgetType *begin() const
@@ -379,7 +388,10 @@ struct WidgetView<IText>: PROPERTYVIEW_BASE_ACCESS IText
         WidgetView(const WidgetView<Type> &other): Type(other)
         {
             this->text = nullptr;
-            setText(other.text);
+            if (other.text != nullptr)
+            {
+                setText(other.text);
+            }
         }
         WidgetView(WidgetView<Type> &&other): Type(other)
         {

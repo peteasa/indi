@@ -30,6 +30,17 @@ add_executable(indi_gemini_focus ${gemini_SRC})
 target_link_libraries(indi_gemini_focus indidriver)
 install(TARGETS indi_gemini_focus RUNTIME DESTINATION bin)
 
+# ############### iOptron Focusing Rotator ########
+SET(iafscaa_SRC
+    iafscaa.cpp)
+
+IF(UNITY_BUILD)
+    ENABLE_UNITY_BUILD(iafscaa iafscaa_SRC 10 cpp)
+ENDIF()
+
+add_executable(indi_iafscaa_focus ${iafscaa_SRC})
+target_link_libraries(indi_iafscaa_focus indidriver)
+install(TARGETS indi_iafscaa_focus RUNTIME DESTINATION bin)
 # ############### NightCrawler Focusing Rotator ################
 SET(nightcrawler_SRC
     nightcrawler.cpp)
@@ -54,6 +65,14 @@ add_executable(indi_falcon_rotator ${falcon_SRC})
 target_link_libraries(indi_falcon_rotator indidriver)
 install(TARGETS indi_falcon_rotator RUNTIME DESTINATION bin)
 
+# ############### Camelot Rotator ################
+SET(camelot_SRC
+    camelot.cpp)
+
+add_executable(indi_camelot_rotator ${camelot_SRC})
+target_link_libraries(indi_camelot_rotator indidriver)
+install(TARGETS indi_camelot_rotator RUNTIME DESTINATION bin)
+
 # ############### Falcon V2 Rotator ################
 SET(falconv2_SRC
     pegasus_falconv2.cpp)
@@ -64,6 +83,7 @@ install(TARGETS indi_falconv2_rotator RUNTIME DESTINATION bin)
 
 # ############### Wanderer Rotator Lite ################
 SET(WandererRotatorLite_SRC
+    wanderer_rotator_base.cpp
     wanderer_rotator_lite.cpp)
 
 add_executable(indi_wanderer_lite_rotator ${WandererRotatorLite_SRC})
@@ -72,6 +92,7 @@ install(TARGETS indi_wanderer_lite_rotator RUNTIME DESTINATION bin)
 
 # ############### Wanderer Rotator Mini ################
 SET(WandererRotatorMini_SRC
+    wanderer_rotator_base.cpp
     wanderer_rotator_mini.cpp)
 
 add_executable(indi_wanderer_rotator_mini ${WandererRotatorMini_SRC})
@@ -80,6 +101,7 @@ install(TARGETS indi_wanderer_rotator_mini RUNTIME DESTINATION bin)
 
 # ############### Wanderer Rotator Lite V2 ################
 SET(WandererRotatorLiteV2_SRC
+    wanderer_rotator_base.cpp
     wanderer_rotator_lite_v2.cpp)
 
 add_executable(indi_wanderer_rotator_lite_v2 ${WandererRotatorLiteV2_SRC})

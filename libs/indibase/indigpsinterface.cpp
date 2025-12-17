@@ -44,18 +44,22 @@ void GPSInterface::initProperties(const char * groupName)
 {
     time(&m_GPSTime);
 
+    // @INDI_STANDARD_PROPERTY@
     PeriodNP[0].fill("PERIOD", "Period (s)", "%.f", 0, 3600, 60.0, 0);
     PeriodNP.fill(m_DefaultDevice->getDeviceName(), "GPS_REFRESH_PERIOD", "Refresh", groupName, IP_RW, 0, IPS_IDLE);
 
+    // @INDI_STANDARD_PROPERTY@
     RefreshSP[0].fill("REFRESH", "GPS", ISS_OFF);
     RefreshSP.fill(m_DefaultDevice->getDeviceName(), "GPS_REFRESH", "Refresh", groupName, IP_RW, ISR_ATMOST1, 0, IPS_IDLE);
 
+    // @INDI_STANDARD_PROPERTY@
     LocationNP[LOCATION_LATITUDE].fill("LAT", "Lat (dd:mm:ss)", "%010.6m", -90, 90, 0, 0.0);
     LocationNP[LOCATION_LONGITUDE].fill("LONG", "Lon (dd:mm:ss)", "%010.6m", 0, 360, 0, 0.0);
     LocationNP[LOCATION_ELEVATION].fill("ELEV", "Elevation (m)", "%g", -200, 10000, 0, 0);
     LocationNP.fill(m_DefaultDevice->getDeviceName(), "GEOGRAPHIC_COORD", "Location", groupName, IP_RO, 60, IPS_IDLE);
 
     // System Time Settings
+    // @INDI_STANDARD_PROPERTY@
     SystemTimeUpdateSP[UPDATE_NEVER].fill("UPDATE_NEVER", "Never", ISS_OFF);
     SystemTimeUpdateSP[UPDATE_ON_STARTUP].fill("UPDATE_ON_STARTUP", "On Startup", ISS_ON);
     SystemTimeUpdateSP[UPDATE_ON_REFRESH].fill("UPDATE_ON_REFRESH", "On Refresh", ISS_OFF);
@@ -64,6 +68,7 @@ void GPSInterface::initProperties(const char * groupName)
                             IPS_IDLE);
     SystemTimeUpdateSP.load();
 
+    // @INDI_STANDARD_PROPERTY@
     TimeTP[0].fill("UTC", "UTC Time", nullptr);
     TimeTP[1].fill("OFFSET", "UTC Offset", nullptr);
     TimeTP.fill(m_DefaultDevice->getDeviceName(), "TIME_UTC", "UTC", groupName, IP_RO, 60, IPS_IDLE);
@@ -206,8 +211,12 @@ bool GPSInterface::processNumber(const char * dev, const char * name, double val
             m_UpdateTimer.start();
             // Need to warn user this is not recommended. Startup values should be enough
             if (prevPeriod == 0)
-                DEBUGDEVICE(m_DefaultDevice->getDeviceName(), Logger::DBG_SESSION,
-                            "GPS Update Timer enabled. Warning: Updating system-wide time repeatedly may lead to undesirable side-effects.");
+            {
+                DEBUGDEVICE(m_DefaultDevice->getDeviceName(), Logger::DBG_SESSION,  "GPS Update Timer enabled.");
+                if (SystemTimeUpdateSP[UPDATE_ON_REFRESH].getState() == ISS_ON)
+                    DEBUGDEVICE(m_DefaultDevice->getDeviceName(), Logger::DBG_WARNING,
+                                "Updating system-wide time repeatedly may lead to undesirable side-effects.");
+            }
         }
 
         PeriodNP.setState(IPS_OK);
@@ -262,9 +271,8 @@ bool GPSInterface::setSystemTime(time_t &raw_time)
 #if (__GLIBC__ >= 2) && (__GLIBC_MINOR__ > 30)
     timespec sTime = {};
     sTime.tv_sec = raw_time;
-    auto rc = clock_settime(CLOCK_REALTIME, &sTime);
-    if (rc)
-        DEBUGFDEVICE(m_DefaultDevice->getDeviceName(), Logger::DBG_WARNING, "Failed to update system time: %s", strerror(rc));
+    if (clock_settime(CLOCK_REALTIME, &sTime) == -1)
+        DEBUGFDEVICE(m_DefaultDevice->getDeviceName(), Logger::DBG_WARNING, "Failed to update system time: %s", strerror(errno));
 #else
     stime(&raw_time);
 #endif

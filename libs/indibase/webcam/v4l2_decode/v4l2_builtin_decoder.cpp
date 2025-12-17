@@ -159,9 +159,16 @@ void V4L2_Builtin_Decoder::decode(unsigned char *frame, struct v4l2_buffer *buf,
                     dest += 2 * crop.c.width;
                 }
             }
-            else
+            else // No soft crop
             {
-                memcpy(yuyvBuffer, frame, 2 * bufwidth * bufheight);
+                unsigned char *src  = frame;
+                unsigned char *dest = yuyvBuffer;
+                for (unsigned int i = 0; i < bufheight; i++)
+                {
+                    memcpy(dest, src, 2 * bufwidth); // Copy 2 * width bytes for each line
+                    src += fmt.fmt.pix.bytesperline; // Advance source by its stride
+                    dest += 2 * bufwidth;            // Advance destination by its stride (2 * width)
+                }
             }
             break;
 
@@ -538,7 +545,7 @@ void V4L2_Builtin_Decoder::setformat(struct v4l2_format f, bool use_ext_pix_form
     allocBuffers();
 }
 
-__u32 V4L2_Builtin_Decoder::getFormat()
+uint32_t V4L2_Builtin_Decoder::getFormat()
 {
     return fmt.fmt.pix.pixelformat;
 }

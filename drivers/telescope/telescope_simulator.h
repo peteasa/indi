@@ -87,10 +87,13 @@ class ScopeSim : public INDI::Telescope, public INDI::GuiderInterface
         virtual bool saveConfigItems(FILE *fp) override;
 
     private:
-        double currentRA { 0 };
-        double currentDEC { 90 };
-        double targetRA { 0 };
-        double targetDEC { 0 };
+        double m_currentRA { 0 };
+        double m_currentDEC { 90 };
+        double m_currentAz { 180 };
+        double m_currentAlt { 0 };
+        double m_targetRA { 0 };
+        double m_targetDEC { 0 };
+        double m_sinLat, m_cosLat;
 
         /// used by GoTo and Park
         void StartSlew(double ra, double dec, TelescopeStatus status);
@@ -106,6 +109,19 @@ class ScopeSim : public INDI::Telescope, public INDI::GuiderInterface
         bool guidingNS = false;
         bool guidingEW = false;
 
+        uint32_t applyDecBacklash(double rate, uint32_t ms);
+        uint32_t backlashComputation(uint32_t ms);
+
+        // In milliseconds. Doesn't depend on guide rate.
+        uint32_t m_DecGuideBacklashMs { 30 };
+        // True if last dec guide pulse was north. Actually a little more complicated
+        // than that because of pier side...
+        bool m_GuideDecLastNorth = false;
+        // Will be between 0 and decGuideBacklash. When guide pulses change directions,
+        // a pulse may not completely clear the backlash. This is how much is left
+        // after that pulse.
+        uint32_t m_DecGuideRemainingBacklash { 0 };
+
         INDI::PropertyNumber GuideRateNP {2};
         enum
         {
@@ -115,8 +131,8 @@ class ScopeSim : public INDI::Telescope, public INDI::GuiderInterface
 
         double m_Home[2] = {0, 0};
 
-        Axis axisPrimary { "HaAxis" };         // hour angle mount axis
-        Axis axisSecondary { "DecAxis" };       // declination mount axis
+        Axis axisPrimary { "Primary Axis" };    // entails angle of mount for primary axis
+        Axis axisSecondary { "Secondary Axis" }; // entails angle of mount for secondary axis ("mechanical DEC")
 
         int m_PierSide {-1};
         int m_MountType {-1};
@@ -161,6 +177,7 @@ class ScopeSim : public INDI::Telescope, public INDI::GuiderInterface
         };
 
         INDI::PropertyNumber flipHourAngleNP {1};
+        INDI::PropertyNumber decBacklashNP {1};
 
 #endif
 

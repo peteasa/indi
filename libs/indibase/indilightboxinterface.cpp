@@ -48,11 +48,13 @@ void LightBoxInterface::initProperties(const char *group, uint32_t capabilities)
 {
     m_Capabilities = capabilities;
     // Turn on/off light
+    // @INDI_STANDARD_PROPERTY@
     LightSP[FLAT_LIGHT_ON].fill("FLAT_LIGHT_ON", "On", ISS_OFF);
     LightSP[FLAT_LIGHT_OFF].fill("FLAT_LIGHT_OFF", "Off", ISS_ON);
     LightSP.fill(m_DefaultDevice->getDeviceName(), "FLAT_LIGHT_CONTROL", "Flat Light", group, IP_RW,  ISR_1OFMANY, 0, IPS_IDLE);
 
     // Light Intensity
+    // @INDI_STANDARD_PROPERTY@
     LightIntensityNP[0].fill("FLAT_LIGHT_INTENSITY_VALUE", "Value", "%.f", 0, 255, 10, 0);
     LightIntensityNP.fill(m_DefaultDevice->getDeviceName(), "FLAT_LIGHT_INTENSITY", "Brightness", group, IP_RW, 0, IPS_IDLE);
 
@@ -62,6 +64,7 @@ void LightBoxInterface::initProperties(const char *group, uint32_t capabilities)
     ActiveDeviceTP.load();
 
     // Filter Intensities
+    // @INDI_STANDARD_PROPERTY@
     FilterIntensityNP.fill(m_DefaultDevice->getDeviceName(), "FLAT_LIGHT_FILTER_INTENSITY", "Filter Intensity", "Preset", IP_RW,
                            60, IPS_IDLE);
 
@@ -86,14 +89,18 @@ bool LightBoxInterface::updateProperties()
     if (m_DefaultDevice->isConnected())
     {
         m_DefaultDevice->defineProperty(LightSP);
-        m_DefaultDevice->defineProperty(LightIntensityNP);
+        if (m_Capabilities & CAN_DIM)
+            m_DefaultDevice->defineProperty(LightIntensityNP);
+        if (!FilterIntensityNP.isEmpty())
+            m_DefaultDevice->defineProperty(FilterIntensityNP);
     }
     else
     {
         m_DefaultDevice->deleteProperty(LightSP);
-        m_DefaultDevice->deleteProperty(LightIntensityNP);
+        if (m_Capabilities & CAN_DIM)
+            m_DefaultDevice->deleteProperty(LightIntensityNP);
 
-        if (FilterIntensityNP.count() > 0)
+        if (!FilterIntensityNP.isEmpty())
             m_DefaultDevice->deleteProperty(FilterIntensityNP);
     }
 
@@ -153,6 +160,9 @@ bool LightBoxInterface::processNumber(const char *dev, const char *name, double 
         }
 
         LightIntensityNP.apply();
+        // If we have no filters, then save config
+        if (FilterIntensityNP.isEmpty())
+            m_DefaultDevice->saveConfig(LightIntensityNP);
         return true;
     }
 
@@ -197,7 +207,7 @@ bool LightBoxInterface::processText(const char *dev, const char *name, char *tex
         if (!ActiveDeviceTP[0].isEmpty())
         {
             IDSnoopDevice(ActiveDeviceTP[0].getText(), "FILTER_SLOT");
-            IDSnoopDevice(ActiveDeviceTP[0].text, "FILTER_NAME");
+            IDSnoopDevice(ActiveDeviceTP[0].getText(), "FILTER_NAME");
         }
         // If filter removed, remove presets
         else
@@ -236,13 +246,15 @@ bool LightBoxInterface::SetLightBoxBrightness(uint16_t value)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool LightBoxInterface::snoop(XMLEle *root)
 {
-    // If dimming not supported, we return
-    if (!(m_Capabilities & CAN_DIM))
+    auto deviceName = findXMLAttValu(root, "device");
+
+    // If dimming not supported or not our device, we return
+    if (!(m_Capabilities & CAN_DIM) || strcmp(ActiveDeviceTP[0].getText(), deviceName))
         return false;
 
-    XMLEle *ep           = nullptr;
-    const char *propTag  = tagXMLEle(root);
-    const char *propName = findXMLAttValu(root, "name");
+    XMLEle *ep = nullptr;
+    auto propTag  = tagXMLEle(root);
+    auto propName = findXMLAttValu(root, "name");
 
     if (!strcmp(propTag, "delProperty"))
         return false;
@@ -273,6 +285,7 @@ bool LightBoxInterface::snoop(XMLEle *root)
             if (isDifferent)
             {
                 m_DefaultDevice->deleteProperty(FilterIntensityNP);
+                FilterIntensityNP.resize(0);
             }
             else
                 return false;
@@ -356,7 +369,11 @@ void LightBoxInterface::addFilterDuration(const char *filterName, uint16_t filte
 bool LightBoxInterface::saveConfigItems(FILE *fp)
 {
     ActiveDeviceTP.save(fp);
-    if (!FilterIntensityNP.isEmpty())
+    // N.B. In case we do not have any filters defined, the light intensity is saved directly.
+    // Otherwise, we rely on filter settings to set the appropiate intensity for each filter.
+    if (FilterIntensityNP.isEmpty())
+        LightIntensityNP.save(fp);
+    else
         FilterIntensityNP.save(fp);
 
     return true;
