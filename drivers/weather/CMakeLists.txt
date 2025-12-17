@@ -23,6 +23,14 @@ add_executable(indi_watcher_weather ${weatherwatcher_SRC})
 target_link_libraries(indi_watcher_weather indidriver ${CURL})
 install(TARGETS indi_watcher_weather RUNTIME DESTINATION bin)
 
+# ########## AAGSolo Weather Station ###############
+SET(aagsolo_SRC
+    aagsolo.cpp)
+
+add_executable(indi_aagsolo_weather ${aagsolo_SRC})
+target_link_libraries(indi_aagsolo_weather indidriver ${CURL})
+install(TARGETS indi_aagsolo_weather RUNTIME DESTINATION bin)
+
 # ########## Weather Safety Proxy ###############
 SET(weathersafetyproxy_SRC
     weather_safety_proxy.cpp)
@@ -65,3 +73,27 @@ ENDIF()
 add_executable(indi_openweathermap_weather ${OpenWeatherMap_SRC})
 target_link_libraries(indi_openweathermap_weather indidriver ${CURL} ${JSONLIB})
 install(TARGETS indi_openweathermap_weather RUNTIME DESTINATION bin)
+
+# ########## Weather safety alpaca ###############
+SET(WeatherSafetyAlpaca_SRC
+    weather_safety_alpaca.cpp)
+
+add_executable(indi_weather_safety_alpaca ${WeatherSafetyAlpaca_SRC})
+target_link_libraries(indi_weather_safety_alpaca indidriver indiclient ${HTTPLIB_LIBRARY})
+install(TARGETS indi_weather_safety_alpaca RUNTIME DESTINATION bin)
+
+# ########## WeatherFlow Tempest ###############
+SET(WeatherFlow_SRC
+    weatherflow.cpp)
+
+add_executable(indi_weatherflow_weather ${WeatherFlow_SRC})
+target_link_libraries(indi_weatherflow_weather indidriver ${HTTPLIB_LIBRARY} ${JSONLIB})
+install(TARGETS indi_weatherflow_weather RUNTIME DESTINATION bin)
+
+# ########## HiTech Weather Driver ###############
+SET(hitechweather_SRC
+    hitechweather.cpp)
+
+add_executable(indi_hitech_weather ${hitechweather_SRC})
+target_link_libraries(indi_hitech_weather indidriver ${HIDAPILIB})
+install(TARGETS indi_hitech_weather RUNTIME DESTINATION bin)

@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Copyright(c) 2015 Jasem Mutlaq. All rights reserved.
+  Copyright(c) 2025 Jérémie Klein. All rights reserved.
 
   Simple GPS Simulator
 
@@ -50,6 +50,14 @@ class WandererCover : public INDI::DefaultDevice, public INDI::LightBoxInterface
         virtual bool ISNewNumber(const char *dev, const char *name, double values[], char *names[], int n) override;
         virtual bool ISSnoopDevice(XMLEle *root) override;
 
+        // Cover state
+        bool isCoverOpen { false };
+        bool isCoverCurrentlyOpen() const { return isCoverOpen; }
+
+        // Light box state
+        bool isLightOn { false };
+        bool isLightCurrentlyOn() const { return isLightOn; }
+
     protected:
         const char *getDefaultName() override;
 
@@ -62,6 +70,8 @@ class WandererCover : public INDI::DefaultDevice, public INDI::LightBoxInterface
         // From Light Box
         virtual bool SetLightBoxBrightness(uint16_t value) override;
         virtual bool EnableLightBox(bool enable) override;
+
+        virtual void TimerHit() override;
 
     private:
         enum

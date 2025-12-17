@@ -127,12 +127,14 @@ bool Dome::initProperties()
         ActiveDevicesUpdated();
 
     // Use locking if telescope is unparked
+    // @INDI_STANDARD_PROPERTY@
     MountPolicySP[MOUNT_IGNORED].fill("MOUNT_IGNORED", "Mount ignored", ISS_ON);
     MountPolicySP[MOUNT_LOCKS].fill("MOUNT_LOCKS", "Mount locks", ISS_OFF);
     MountPolicySP.fill(getDeviceName(), "MOUNT_POLICY", "Mount Policy", OPTIONS_TAB, IP_RW, ISR_1OFMANY, 60, IPS_IDLE);
     MountPolicySP.load();
 
     // Shutter Policy
+    // @INDI_STANDARD_PROPERTY@
     ShutterParkPolicySP[SHUTTER_CLOSE_ON_PARK].fill("SHUTTER_CLOSE_ON_PARK", "Close On Park", ISS_OFF);
     ShutterParkPolicySP[SHUTTER_OPEN_ON_UNPARK].fill("SHUTTER_OPEN_ON_UNPARK", "Open On UnPark", ISS_OFF);
     ShutterParkPolicySP.fill(getDeviceName(), "DOME_SHUTTER_PARK_POLICY", "Shutter", OPTIONS_TAB, IP_RW, ISR_NOFMANY, 60,
@@ -140,6 +142,7 @@ bool Dome::initProperties()
     ShutterParkPolicySP.load();
 
     // Measurements
+    // @INDI_STANDARD_PROPERTY@
     DomeMeasurementsNP[DM_DOME_RADIUS].fill("DM_DOME_RADIUS", "Radius (m)", "%6.2f", 0.0, 50.0, 1.0, 0.0);
     DomeMeasurementsNP[DM_SHUTTER_WIDTH].fill("DM_SHUTTER_WIDTH", "Shutter width (m)", "%6.2f", 0.0, 10.0, 1.0, 0.0);
     DomeMeasurementsNP[DM_NORTH_DISPLACEMENT].fill("DM_NORTH_DISPLACEMENT", "N displacement (m)", "%6.2f", -10.0, 10.0, 1.0,
@@ -150,6 +153,7 @@ bool Dome::initProperties()
     DomeMeasurementsNP.fill(getDeviceName(), "DOME_MEASUREMENTS", "Measurements", DOME_SLAVING_TAB, IP_RW, 60, IPS_OK);
     DomeMeasurementsNP.load();
 
+    // @INDI_STANDARD_PROPERTY@
     OTASideSP[DM_OTA_SIDE_EAST].fill("DM_OTA_SIDE_EAST", "East", ISS_OFF);
     OTASideSP[DM_OTA_SIDE_WEST].fill("DM_OTA_SIDE_WEST", "West", ISS_OFF);
     OTASideSP[DM_OTA_SIDE_MOUNT].fill("DM_OTA_SIDE_MOUNT", "Mount", ISS_ON);
@@ -157,52 +161,65 @@ bool Dome::initProperties()
     OTASideSP[DM_OTA_SIDE_IGNORE].fill("DM_OTA_SIDE_IGNORE", "Ignore", ISS_OFF);
     OTASideSP.fill(getDeviceName(), "DM_OTA_SIDE", "Meridian side", DOME_SLAVING_TAB, IP_RW, ISR_ATMOST1, 60, IPS_OK);
 
+    // @INDI_STANDARD_PROPERTY@
     DomeAutoSyncSP[INDI_ENABLED].fill("DOME_AUTOSYNC_ENABLE", "Enable", ISS_OFF);
     DomeAutoSyncSP[INDI_DISABLED].fill("DOME_AUTOSYNC_DISABLE", "Disable", ISS_ON);
     DomeAutoSyncSP.fill(getDeviceName(), "DOME_AUTOSYNC", "Slaving", DOME_SLAVING_TAB, IP_RW, ISR_1OFMANY, 60, IPS_OK);
 
+    // @INDI_STANDARD_PROPERTY@
     DomeSpeedNP[0].fill("DOME_SPEED_VALUE", "RPM", "%6.2f", 0.0, 10, 0.1, 1.0);
     DomeSpeedNP.fill(getDeviceName(), "DOME_SPEED", "Speed", MAIN_CONTROL_TAB, IP_RW, 60, IPS_OK);
 
+    // @INDI_STANDARD_PROPERTY@
     DomeSyncNP[0].fill("DOME_SYNC_VALUE", "Az", "%.2f", 0.0, 360, 10, 0.0);
     DomeSyncNP.fill(getDeviceName(), "DOME_SYNC", "Sync", MAIN_CONTROL_TAB, IP_RW, 60, IPS_OK);
 
+    // @INDI_STANDARD_PROPERTY@
     DomeMotionSP[0].fill("DOME_CW", "Dome CW", ISS_OFF);
     DomeMotionSP[1].fill("DOME_CCW", "Dome CCW", ISS_OFF);
     DomeMotionSP.fill(getDeviceName(), "DOME_MOTION", "Motion", MAIN_CONTROL_TAB, IP_RW, ISR_ATMOST1, 60, IPS_OK);
 
     // Driver can define those to clients if there is support
+    // @INDI_STANDARD_PROPERTY@
     DomeAbsPosNP[0].fill("DOME_ABSOLUTE_POSITION", "Degrees", "%6.2f", 0.0, 360.0, 1.0, 0.0);
     DomeAbsPosNP.fill(getDeviceName(), "ABS_DOME_POSITION", "Absolute Position", MAIN_CONTROL_TAB, IP_RW, 60, IPS_OK);
 
+    // @INDI_STANDARD_PROPERTY@
     DomeRelPosNP[0].fill("DOME_RELATIVE_POSITION", "Degrees", "%6.2f", -180, 180.0, 10.0, 0.0);
     DomeRelPosNP.fill(getDeviceName(), "REL_DOME_POSITION", "Relative Position", MAIN_CONTROL_TAB, IP_RW, 60, IPS_OK);
 
+    // @INDI_STANDARD_PROPERTY@
     AbortSP[0].fill("ABORT", "Abort", ISS_OFF);
     AbortSP.fill(getDeviceName(), "DOME_ABORT_MOTION", "Abort Motion", MAIN_CONTROL_TAB, IP_RW, ISR_ATMOST1, 60, IPS_IDLE);
 
+    // @INDI_STANDARD_PROPERTY@
     DomeParamNP[0].fill("AUTOSYNC_THRESHOLD", "Autosync threshold (deg)", "%6.2f", 0.0, 360.0, 1.0, 0.5);
     DomeParamNP.fill(getDeviceName(), "DOME_PARAMS", "Params", DOME_SLAVING_TAB, IP_RW, 60, IPS_OK);
     DomeParamNP.load();
 
+    // @INDI_STANDARD_PROPERTY@
     ParkSP[0].fill("PARK", "Park(ed)", ISS_OFF);
     ParkSP[1].fill("UNPARK", "UnPark(ed)", ISS_OFF);
     ParkSP.fill(getDeviceName(), "DOME_PARK", "Parking", MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, 60, IPS_OK);
 
     // Backlash Compensation
+    // @INDI_STANDARD_PROPERTY@
     DomeBacklashSP[INDI_ENABLED].fill("INDI_ENABLED", "Enabled", ISS_OFF);
     DomeBacklashSP[INDI_DISABLED].fill("INDI_DISABLED", "Disabled", ISS_ON);
     DomeBacklashSP.fill(getDeviceName(), "DOME_BACKLASH_TOGGLE", "Backlash", OPTIONS_TAB, IP_RW, ISR_1OFMANY, 60, IPS_IDLE);
 
     // Backlash Compensation Value
+    // @INDI_STANDARD_PROPERTY@
     DomeBacklashNP[0].fill("DOME_BACKLASH_VALUE", "Steps", "%.f", 0, 1e6, 100, 0);
     DomeBacklashNP.fill(getDeviceName(), "DOME_BACKLASH_STEPS", "Backlash", OPTIONS_TAB, IP_RW, 60, IPS_OK);
     DomeBacklashNP.load();
 
+    // @INDI_STANDARD_PROPERTY@
     DomeShutterSP[0].fill("SHUTTER_OPEN", "Open", ISS_OFF);
     DomeShutterSP[1].fill("SHUTTER_CLOSE", "Close", ISS_ON);
     DomeShutterSP.fill(getDeviceName(), "DOME_SHUTTER", "Shutter", MAIN_CONTROL_TAB, IP_RW, ISR_ATMOST1, 60, IPS_OK);
 
+    // @INDI_STANDARD_PROPERTY@
     ParkOptionSP[0].fill("PARK_CURRENT", "Current", ISS_OFF);
     ParkOptionSP[1].fill("PARK_DEFAULT", "Default", ISS_OFF);
     ParkOptionSP[2].fill("PARK_WRITE_DATA", "Write Data", ISS_OFF);
@@ -410,6 +427,9 @@ bool Dome::ISNewNumber(const char * dev, const char * name, double values[], cha
             DomeParamNP.update(values, names, n);
             DomeParamNP.setState(IPS_OK);
             DomeParamNP.apply();
+            // If slaving is enabled, report the differential threshold update.
+            if (DomeAutoSyncSP[INDI_ENABLED].getState() == ISS_ON)
+                LOGF_INFO("Dome slaving differential threshold updated to %.2f degrees.", DomeParamNP[0].getValue());
             saveConfig(DomeParamNP);
             return true;
         }
@@ -522,7 +542,8 @@ bool Dome::ISNewSwitch(const char * dev, const char * name, ISState * states, ch
 
             if (DomeAutoSyncSP[0].getState() == ISS_ON)
             {
-                LOG_WARN("Dome will now be synced to mount azimuth position.");
+                LOGF_WARN("Dome will now be synced to mount azimuth position if the differential threshold exceeds %.2f degrees.",
+                          DomeParamNP[0].getValue());
                 DomeAutoSyncSP.apply();
                 UpdateMountCoords();
                 m_MountUpdateTimer.start(HORZ_UPDATE_TIMER);
@@ -827,7 +848,7 @@ bool Dome::ISSnoopDevice(XMLEle * root)
     if (!strcmp("TARGET_EOD_COORD", propName) && deviceName == ActiveDeviceTP[ACTIVE_MOUNT].getText())
     {
         int rc_ra = -1, rc_de = -1;
-        double ra = 0, de = 0;
+        double ra = std::numeric_limits<double>::quiet_NaN(), de = std::numeric_limits<double>::quiet_NaN();
 
         for (ep = nextXMLEle(root, 1); ep != nullptr; ep = nextXMLEle(root, 0))
         {
@@ -842,7 +863,7 @@ bool Dome::ISSnoopDevice(XMLEle * root)
         //  Dont start moving the dome till the mount has initialized all the variables
         if (HaveRaDec && CanAbsMove())
         {
-            if (rc_ra == 0 && rc_de == 0)
+            if (rc_ra == 0 && rc_de == 0 && !std::isnan(ra) && !std::isnan(de))
             {
                 //  everything parsed ok, so lets start the dome to moving
                 //  If this slew involves a meridian flip, then the slaving calcs will end up using
@@ -866,7 +887,7 @@ bool Dome::ISSnoopDevice(XMLEle * root)
     if (!strcmp("EQUATORIAL_EOD_COORD", propName) && deviceName == ActiveDeviceTP[ACTIVE_MOUNT].getText())
     {
         int rc_ra = -1, rc_de = -1;
-        double ra = 0, de = 0;
+        double ra = std::numeric_limits<double>::quiet_NaN(), de = std::numeric_limits<double>::quiet_NaN();
 
         for (ep = nextXMLEle(root, 1); ep != nullptr; ep = nextXMLEle(root, 0))
         {
@@ -878,12 +899,16 @@ bool Dome::ISSnoopDevice(XMLEle * root)
                 rc_de = f_scansexa(pcdataXMLEle(ep), &de);
         }
 
-        if (rc_ra == 0 && rc_de == 0)
+        if (rc_ra == 0 && rc_de == 0 && !std::isnan(ra) && !std::isnan(de))
         {
             // Do not spam log
             if (std::fabs(mountEquatorialCoords.rightascension - ra) > 0.01
                     || std::fabs(mountEquatorialCoords.declination - de) > 0.01)
             {
+                // Ignore empty coords.
+                if (ra == 0 && de == 0)
+                    return true;
+
                 char RAStr[64] = {0}, DEStr[64] = {0};
                 fs_sexa(RAStr, ra, 2, 3600);
                 fs_sexa(DEStr, de, 2, 3600);
@@ -1313,119 +1338,188 @@ bool Dome::GetTargetAz(double &Az, double &Alt, double &minAz, double &maxAz)
     }
 
     double JD  = ln_get_julian_from_sys();
-    double MSD = ln_get_mean_sidereal_time(JD);
+    double LST = get_local_sidereal_time(observer.longitude);
+    char lstStr[64], latStr[64], lonStr[64];
+    fs_sexa(lstStr, LST, 2, 3600);
+    fs_sexa(latStr, observer.latitude, 2, 3600);
+    fs_sexa(lonStr, observer.longitude, 2, 3600);
 
-    LOGF_DEBUG("JD: %g - MSD: %g", JD, MSD);
+    // Condensed Initial Coords Log
+    LOGF_DEBUG("Coords - LST: %s, Lat: %s, Lon: %s", lstStr, latStr, lonStr);
 
     MountCenter.x = DomeMeasurementsNP[DM_EAST_DISPLACEMENT].getValue(); // Positive to East
     MountCenter.y = DomeMeasurementsNP[DM_NORTH_DISPLACEMENT].getValue();  // Positive to North
     MountCenter.z = DomeMeasurementsNP[DM_UP_DISPLACEMENT].getValue();    // Positive Up
 
-    LOGF_DEBUG("MC.x: %g - MC.y: %g MC.z: %g", MountCenter.x, MountCenter.y, MountCenter.z);
-
     // Get hour angle in hours
-    hourAngle = get_local_hour_angle(get_local_sidereal_time(observer.longitude), mountEquatorialCoords.rightascension);
-    LOGF_DEBUG("HA: %g  Lng: %g RA: %g", hourAngle, observer.longitude, mountEquatorialCoords.rightascension);
+    hourAngle = get_local_hour_angle(LST, mountEquatorialCoords.rightascension);
+    char raStr[64], decStr[64], haStr[64];
+    fs_sexa(raStr, mountEquatorialCoords.rightascension, 2, 3600);
+    fs_sexa(decStr, mountEquatorialCoords.declination, 2, 3600);
+    fs_sexa(haStr, hourAngle, 2, 3600);
 
-    // Side of the telescope with respect of the mount, 1: west, -1: east, 0: use the mid point
-    int OTASide = 0;
+    // To be sure mountHoriztonalCoords is up to date before potentially using it.
+    EquatorialToHorizontal(&mountEquatorialCoords, &observer, JD, &mountHoriztonalCoords);
+    char mountAzStr[64], mountAltStr[64];
+    fs_sexa(mountAzStr, mountHoriztonalCoords.azimuth, 2, 3600);
+    fs_sexa(mountAltStr, mountHoriztonalCoords.altitude, 2, 3600);
 
-    if (OTASideSP.getState() == IPS_OK)
+    // Condensed Mount Coords Log
+    LOGF_DEBUG("Mount - RA: %s, Dec: %s, HA: %s --> Az: %s, Alt: %s", raStr, decStr, haStr, mountAzStr, mountAltStr);
+
+    // Near the celestial pole, HA calculated from RA can be unreliable for determining pier side.
+    // Use Azimuth to infer a more reliable effective HA for the OpticalCenter calculation.
+    double effectiveHourAngle = hourAngle; // Use original HA by default
+    const double poleThresholdDec = 89.0; // Degrees
+    bool nearPole = std::abs(mountEquatorialCoords.declination) > poleThresholdDec;
+
+    // Define a threshold for azimuth deviation when near the pole
+    const double POLE_AZIMUTH_DEVIATION_THRESHOLD = 30.0; // Degrees
+
+    // Lambda function to perform the core calculations
+    auto performCalculations = [&](double currentEffectiveHourAngle)
     {
-        if(OTASideSP[DM_OTA_SIDE_HA].getState() == ISS_ON || (UseHourAngle && OTASideSP[DM_OTA_SIDE_MOUNT].getState() == ISS_ON))
-        {
-            // Note if the telescope points West, OTA is at east of the pier, and vice-versa.
-            if(hourAngle > 0)
-                OTASide = -1;
-            else
-                OTASide = 1;
-        }
-        else if(OTASideSP[DM_OTA_SIDE_EAST].getState() == ISS_ON)
-            OTASide = -1;
-        else if(OTASideSP[DM_OTA_SIDE_WEST].getState() == ISS_ON)
-            OTASide = 1;
-        else if(OTASideSP[DM_OTA_SIDE_MOUNT].getState() == ISS_ON)
-            OTASide = mountOTASide;
+        // Side of the telescope with respect of the mount, 1: west, -1: east, 0: use the mid point
+        int OTASide = 0;
+        int otaSideSelection = OTASideSP.findOnSwitchIndex(); // Get selected mode
 
-        LOGF_DEBUG("OTA_SIDE selection: %d", OTASideSP.findOnSwitchIndex());
+        if (OTASideSP.getState() == IPS_OK)
+        {
+            if(otaSideSelection == DM_OTA_SIDE_HA || (UseHourAngle && otaSideSelection == DM_OTA_SIDE_MOUNT))
+            {
+                // Note if the telescope points West (HA > 0), OTA is at east of the pier, and vice-versa.
+                double haForSide = nearPole ? currentEffectiveHourAngle : hourAngle; // Use effective HA near pole
+
+                // Determine side based on HA. HA=0 means pointing East (OTA West), HA=12 means pointing West (OTA East)
+                if (haForSide > 0.1 && haForSide < 11.9) // Pointing West
+                    OTASide = -1; // OTA East
+                else // Pointing East (HA near 0 or 12)
+                    OTASide = 1; // OTA West
+            }
+            else if(otaSideSelection == DM_OTA_SIDE_EAST)
+                OTASide = -1;
+            else if(otaSideSelection == DM_OTA_SIDE_WEST)
+                OTASide = 1;
+            else if(otaSideSelection == DM_OTA_SIDE_MOUNT)
+                OTASide = mountOTASide;
+            // DM_OTA_SIDE_IGNORE results in OTASide = 0
+        }
+
+        double otaOffset = OTASide * DomeMeasurementsNP[DM_OTA_OFFSET].getValue();
+        OpticalCenter(MountCenter, otaOffset, observer.latitude, currentEffectiveHourAngle, OptCenter);
+
+        // Get optical axis point. This and the previous form the optical axis line
+        OpticalVector(mountHoriztonalCoords.azimuth, mountHoriztonalCoords.altitude, OptVector);
+
+        // Condensed Geometry Log
+        char effHaStr[64];
+        fs_sexa(effHaStr, currentEffectiveHourAngle, 2, 3600);
+        LOGF_DEBUG("Geom - Mount(E:%.2f,N:%.2f,Up:%.2f) OTA(SideSel:%d, SideUsed:%d, Off:%.2f, EffHA:%s) -> OptCenter(X:%.3f,Y:%.3f,Z:%.3f) OptVec(X:%.3f,Y:%.3f,Z:%.3f)",
+                   MountCenter.x, MountCenter.y, MountCenter.z,
+                   otaSideSelection, OTASide, DomeMeasurementsNP[DM_OTA_OFFSET].getValue(), effHaStr,
+                   OptCenter.x, OptCenter.y, OptCenter.z,
+                   OptVector.x, OptVector.y, OptVector.z);
+
+        if (Intersection(OptCenter, OptVector, DomeMeasurementsNP[DM_DOME_RADIUS].getValue(), mu1, mu2))
+        {
+            // If telescope is pointing over the horizon, the solution is mu1, else is mu2
+            if (mu1 < 0)
+            {
+                LOGF_DEBUG("Intersection mu1 < 0, using mu2 (%.3f)", mu2); // Less critical
+                mu1 = mu2;
+            }
+
+            DomeIntersect.x = OptCenter.x + mu1 * (OptVector.x );
+            DomeIntersect.y = OptCenter.y + mu1 * (OptVector.y );
+            DomeIntersect.z = OptCenter.z + mu1 * (OptVector.z );
+            LOGF_DEBUG("Intersection - Point(X:%.3f, Y:%.3f, Z:%.3f) Dist: %.3f", DomeIntersect.x, DomeIntersect.y, DomeIntersect.z,
+                       mu1);
+
+            // Calculate Azimuth using atan2(x, y) for robustness.
+            Az = atan2(DomeIntersect.x, DomeIntersect.y) * 180.0 / M_PI;
+
+            // Normalize Az to [0, 360) range
+            if (Az < 0)
+            {
+                Az += 360.0;
+            }
+            if (Az >= 360.0)
+            {
+                Az = 0.0;
+            }
+
+            if ((std::abs(DomeIntersect.x) > 0.00001) || (std::abs(DomeIntersect.y) > 0.00001))
+                Alt = 180 * atan(DomeIntersect.z / sqrt((DomeIntersect.x * DomeIntersect.x) + (DomeIntersect.y * DomeIntersect.y))) /  M_PI;
+            else
+                Alt = 90; // Dome Zenith
+
+            double RadiusAtAlt = DomeMeasurementsNP[DM_DOME_RADIUS].getValue() * cos(M_PI * Alt / 180);
+
+            if (DomeMeasurementsNP[DM_SHUTTER_WIDTH].getValue() < (2 * RadiusAtAlt))
+            {
+                double HalfApertureChordAngle = 180 * asin(DomeMeasurementsNP[DM_SHUTTER_WIDTH].getValue() / (2 * RadiusAtAlt)) / M_PI;
+                minAz = range360(Az - HalfApertureChordAngle);
+                maxAz = range360(Az + HalfApertureChordAngle);
+            }
+            else
+            {
+                minAz = 0;
+                maxAz = 360;
+            }
+            return true;
+        }
+        return false;
+    };
+
+    // Initial calculation attempt
+    bool success = performCalculations(effectiveHourAngle);
+
+    // If near pole and initial calculation deviates significantly, try the other effectiveHourAngle
+    if (nearPole && success)
+    {
+        double initialAz = Az;
+        double diff = std::abs(initialAz - mountHoriztonalCoords.azimuth);
+        if (diff > 180.0) // Handle wrap-around for angular difference
+            diff = 360.0 - diff;
+
+        if (diff > POLE_AZIMUTH_DEVIATION_THRESHOLD)
+        {
+            LOGF_DEBUG("Near pole, initial Az (%.2f) deviates from mount Az (%.2f) by %.2f degrees. Attempting alternative effectiveHourAngle.",
+                       initialAz, mountHoriztonalCoords.azimuth, diff);
+
+            // Flip effectiveHourAngle
+            effectiveHourAngle = (effectiveHourAngle == 0.0) ? 12.0 : 0.0;
+            success = performCalculations(effectiveHourAngle);
+
+            if (success)
+            {
+                LOGF_DEBUG("Re-calculated Az (%.2f) with alternative effectiveHourAngle (%.2f).", Az, effectiveHourAngle);
+            }
+            else
+            {
+                LOG_WARN("Re-calculation with alternative effectiveHourAngle failed.");
+            }
+        }
     }
 
-    OpticalCenter(MountCenter, OTASide * DomeMeasurementsNP[DM_OTA_OFFSET].getValue(), observer.latitude, hourAngle, OptCenter);
-
-    LOGF_DEBUG("OTA_SIDE: %d", OTASide);
-    LOGF_DEBUG("Mount OTA_SIDE: %d", mountOTASide);
-    LOGF_DEBUG("OTA_OFFSET: %g  Lat: %g", DomeMeasurementsNP[DM_OTA_OFFSET].getValue(), observer.latitude);
-    LOGF_DEBUG("OC.x: %g - OC.y: %g OC.z: %g", OptCenter.x, OptCenter.y, OptCenter.z);
-
-    // To be sure mountHoriztonalCoords is up to date.
-    EquatorialToHorizontal(&mountEquatorialCoords, &observer, JD, &mountHoriztonalCoords);
-
-    // Get optical axis point. This and the previous form the optical axis line
-    OpticalVector(mountHoriztonalCoords.azimuth, mountHoriztonalCoords.altitude, OptVector);
-    LOGF_DEBUG("Mount Az: %g  Alt: %g", mountHoriztonalCoords.azimuth, mountHoriztonalCoords.altitude);
-    LOGF_DEBUG("OV.x: %g - OV.y: %g OV.z: %g", OptVector.x, OptVector.y, OptVector.z);
-
-    if (Intersection(OptCenter, OptVector, DomeMeasurementsNP[DM_DOME_RADIUS].getValue(), mu1, mu2))
+    if (success)
     {
-        // If telescope is pointing over the horizon, the solution is mu1, else is mu2
-        if (mu1 < 0)
-            mu1 = mu2;
-
-        double yx;
-        double HalfApertureChordAngle;
-        double RadiusAtAlt;
-
-        DomeIntersect.x = OptCenter.x + mu1 * (OptVector.x );
-        DomeIntersect.y = OptCenter.y + mu1 * (OptVector.y );
-        DomeIntersect.z = OptCenter.z + mu1 * (OptVector.z );
-
-        if (std::abs(DomeIntersect.x) > 0.00001)
-        {
-            yx = DomeIntersect.y / DomeIntersect.x;
-            Az = 90 - 180 * atan(yx) / M_PI;
-            if (DomeIntersect.x < 0)
-            {
-                Az = Az + 180;
-            }
-            Az = range360(Az);
-        }
-        else
-        {
-            // Dome East-West line or zenith
-            if (DomeIntersect.y > 0)
-                Az = 90;
-            else
-                Az = 270;
-        }
-
-        if ((std::abs(DomeIntersect.x) > 0.00001) || (std::abs(DomeIntersect.y) > 0.00001))
-            Alt = 180 * atan(DomeIntersect.z / sqrt((DomeIntersect.x * DomeIntersect.x) + (DomeIntersect.y * DomeIntersect.y))) /  M_PI;
-        else
-            Alt = 90; // Dome Zenith
-
-        // Calculate the Azimuth range in the given Altitude of the dome
-        RadiusAtAlt = DomeMeasurementsNP[DM_DOME_RADIUS].getValue() * cos(M_PI * Alt / 180); // Radius alt the given altitude
-
-        if (DomeMeasurementsNP[DM_SHUTTER_WIDTH].getValue() < (2 * RadiusAtAlt))
-        {
-            HalfApertureChordAngle = 180 * asin(DomeMeasurementsNP[DM_SHUTTER_WIDTH].getValue() / (2 * RadiusAtAlt)) /
-                                     M_PI; // Angle of a chord of half aperture length
-            minAz = Az - HalfApertureChordAngle;
-            if (minAz < 0)
-                minAz = minAz + 360;
-            maxAz = Az + HalfApertureChordAngle;
-            if (maxAz >= 360)
-                maxAz = maxAz - 360;
-        }
-        else
-        {
-            minAz = 0;
-            maxAz = 360;
-        }
+        // Final Condensed Log
+        char currentAzStr[64], targetAzStr[64], targetAltStr[64], minAzStr[64], maxAzStr[64];
+        fs_sexa(currentAzStr, DomeAbsPosNP[0].getValue(), 2, 3600);
+        fs_sexa(targetAzStr, Az, 2, 3600);
+        fs_sexa(targetAltStr, Alt, 2, 3600);
+        fs_sexa(minAzStr, minAz, 2, 3600);
+        fs_sexa(maxAzStr, maxAz, 2, 3600);
+        LOGF_DEBUG("Result - Current Az:%s , Target Az: %s, Alt: %s --> Range Min: %s, Max: %s", currentAzStr, targetAzStr,
+                   targetAltStr, minAzStr, maxAzStr);
         return true;
     }
-
-    return false;
+    else
+    {
+        LOG_WARN("Optical axis does not intersect dome sphere.");
+        return false;
+    }
 }
 
 bool Dome::Intersection(point3D p1, point3D dp, double r, double &mu1, double &mu2)
@@ -1564,8 +1658,6 @@ void Dome::UpdateAutoSync()
             LOGF_DEBUG("GetTargetAz failed %g", targetAz);
             return;
         }
-        LOGF_DEBUG("Calculated target azimuth is %.2f. MinAz: %.2f, MaxAz: %.2f", targetAz, minAz,
-                   maxAz);
 
         if (std::abs(targetAz - DomeAbsPosNP[0].getValue()) > DomeParamNP[0].getValue())
         {

@@ -589,6 +589,10 @@ bool SynscanDriver::SetAltAzMode(bool enable)
 {
     IUResetSwitch(&GotoModeSP);
 
+    MountTypeSP.reset();
+    MountTypeSP[MOUNT_ALTAZ].setState(enable ? ISS_ON : ISS_OFF);
+    MountTypeSP[MOUNT_EQ_GEM].setState(!enable ? ISS_ON : ISS_OFF);
+
     if (enable)
     {
         ISwitch *sp = IUFindSwitch(&GotoModeSP, "ALTAZ");
@@ -983,13 +987,13 @@ bool SynscanDriver::sendTime()
         //  now we have time from the hand controller, we need to set some variables
         int sec;
         char utc[100];
-        char ofs[10];
+        char ofs[16] = {0};
         sec = static_cast<int>(utcTime.seconds);
         sprintf(utc, "%04d-%02d-%dT%d:%02d:%02d", utcTime.years, utcTime.months, utcTime.days, utcTime.hours,
                 utcTime.minutes, sec);
         if (daylightflag == 1)
             offset = offset + 1;
-        sprintf(ofs, "%d", offset);
+        snprintf(ofs, 16, "%d", offset);
 
         TimeTP[UTC].setText(utc);
         TimeTP[OFFSET].setText(ofs);
@@ -1297,7 +1301,7 @@ void SynscanDriver::mountSim()
     switch (TrackState)
     {
         case SCOPE_IDLE:
-        CurrentRA += (TrackRateNP[AXIS_RA].getValue() / 3600.0 * dt) / 15.0;
+            CurrentRA += (TrackRateNP[AXIS_RA].getValue() / 3600.0 * dt) / 15.0;
             CurrentRA = range24(CurrentRA);
             break;
 

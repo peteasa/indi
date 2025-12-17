@@ -77,8 +77,30 @@
     "cfenv": "cpp",
     "typeinfo": "cpp",
     "valarray": "cpp",
-    "variant": "cpp"
+    "variant": "cpp",
+    "charconv": "cpp",
+    "source_location": "cpp",
+    "format": "cpp",
+    "span": "cpp",
+    "stdfloat": "cpp",
+    "text_encoding": "cpp",
+    "typeindex": "cpp",
+    "indiapi.h": "c",
+    "hash_set": "cpp",
+    "strstream": "cpp",
+    "coroutine": "cpp",
+    "csetjmp": "cpp",
+    "unordered_set": "cpp",
+    "queue": "cpp",
+    "stack": "cpp"
   },
   // Pass any arguments to configure CMake here (e.g. -DINDI_BUILD_WEBSOCKET=On)
-  "cmake.configureArgs": []
+  "cmake.configureArgs": [],
+  "cmake.buildDirectory": "${workspaceFolder}/build",
+  "cmake.generator": "Ninja",
+  "cmake.configureSettings": {
+    "CMAKE_INSTALL_PREFIX": "/usr",
+    "CMAKE_CURRENT_BINARY_DIR": "${workspaceFolder}/build"
+  },
+  "C_Cpp.errorSquiggles": "disabled"
 }

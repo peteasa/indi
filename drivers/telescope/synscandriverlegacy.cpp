@@ -106,6 +106,9 @@ bool SynscanLegacyDriver::initProperties()
     //    IUFillSwitch(&UseWiFiS[WIFI_DISABLED], "Disabled", "Disabled", ISS_ON);
     //    IUFillSwitchVector(&UseWiFiSP, UseWiFiS, 2, getDeviceName(), "WIFI_SELECT", "Use WiFi?", CONNECTION_TAB, IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
 
+    MountTypeSP.reset();
+    MountTypeSP[MOUNT_ALTAZ].setState(ISS_ON);
+
     addAuxControls();
 
     return true;
@@ -1103,13 +1106,13 @@ bool SynscanLegacyDriver::ReadTime()
         //  now we have time from the hand controller, we need to set some variables
         int sec;
         char utc[100];
-        char ofs[10];
+        char ofs[16] = {0};
         sec = (int)utcTime.seconds;
         sprintf(utc, "%04d-%02d-%dT%d:%02d:%02d", utcTime.years, utcTime.months, utcTime.days, utcTime.hours,
                 utcTime.minutes, sec);
         if (daylightflag == 1)
             offset = offset + 1;
-        sprintf(ofs, "%d", offset);
+        snprintf(ofs, 16, "%d", offset);
 
         TimeTP[UTC].setText(utc);
         TimeTP[OFFSET].setText(ofs);
@@ -1534,7 +1537,7 @@ void SynscanLegacyDriver::MountSim()
     switch (TrackState)
     {
         case SCOPE_IDLE:
-        CurrentRA += (TrackRateNP[AXIS_RA].getValue() / 3600.0 * dt) / 15.0;
+            CurrentRA += (TrackRateNP[AXIS_RA].getValue() / 3600.0 * dt) / 15.0;
             CurrentRA = range24(CurrentRA);
             break;
 

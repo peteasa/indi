@@ -33,7 +33,7 @@
 
 #define _GNU_SOURCE // needed for wcsdup() before glibc 2.10
 
-#include "hidapi.h"
+#include "indi_hidapi.h"
 #include "locale_compat.h"
 
 /* GNU / LibUSB */
@@ -65,7 +65,7 @@ extern "C" {
     } while (0)
 #endif
 
-#ifndef __FreeBSD__
+#if !defined(__FreeBSD__) && !defined(__OpenBSD__)
 #define DETACH_KERNEL_DRIVER
 #endif
 

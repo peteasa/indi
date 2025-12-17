@@ -92,6 +92,8 @@ const char *SkywatcherAPI::mountTypeToString(uint8_t type)
             return "EQ6 Pro";
         case EQ5_PRO:
             return "EQ5 Pro";
+        case WAVE_150I:
+            return "Wave 150i";
         case GT:
             return "GT";
         case MF:
@@ -506,7 +508,7 @@ bool SkywatcherAPI::InitMount()
 
     // Disable EQ mounts
     // 0x22 is code for AZEQ6 which is added as an exception as proposed by Dirk Tetzlaff
-    if (MountCode < 0x80 && MountCode != AZEQ6 && MountCode != AZEQ5 && MountCode != AZEQ6_PRO)
+    if (MountCode < 0x80 && MountCode != AZEQ6 && MountCode != AZEQ5 && MountCode != AZEQ6_PRO && MountCode != WAVE_150I)
     {
         MYDEBUGF(DBG_SCOPE, "Mount type not supported. %d", MountCode);
         return false;
@@ -915,7 +917,7 @@ bool SkywatcherAPI::TalkWithAxis(AXISID Axis, SkywatcherCommand Command, std::st
         {
             memset(response, '\0', SKYWATCHER_MAX_CMD);
             // If we get less than 2 bytes then it must be an error (=\r is a valid response).
-            if ( (errorCode = tty_read_section(MyPortFD, response, 0x0D, SKYWATCHER_TIMEOUT, &bytesRead)) != TTY_OK
+            if ( (errorCode = tty_read_section_expanded(MyPortFD, response, 0x0D, SKYWATCHER_TIMEOUT_S, SKYWATCHER_TIMEOUT_US, &bytesRead)) != TTY_OK
                     || bytesRead < 2)
             {
                 if (retries == SKYWATCHER_MAX_RETRTY - 1)
